@@ -1,5 +1,5 @@
 #
-# Copyright 2013-2017 Red Hat, Inc
+# Copyright 2013-2025 Red Hat, Inc
 # Copyright 2012-2015 eNovance <licensing@enovance.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -23,15 +23,10 @@ from oslo_log import log
 from oslo_policy import opts as policy_opts
 from oslo_reports import guru_meditation_report as gmr
 from oslo_reports import opts as gmr_opts
-from oslo_utils import importutils
 
 from proxy.conf import defaults
 from proxy import keystone_client
-from proxy import messaging
-from proxy import profiler
 from proxy import version
-
-profiler_opts = importutils.try_import('osprofiler.opts')
 
 OPTS = [
     cfg.IntOpt('http_timeout',
@@ -41,36 +36,6 @@ OPTS = [
                                   'effect.'),
                help='Timeout seconds for HTTP requests. Set it to None to '
                     'disable timeout.'),
-]
-
-EVALUATOR_OPTS = [
-    cfg.IntOpt('workers',
-               default=1,
-               min=1,
-               help='Number of workers for evaluator service. '
-               'default value is 1.'),
-    cfg.IntOpt('evaluation_interval',
-               default=60,
-               deprecated_group='DEFAULT',
-               help='Period of evaluation cycle, should'
-               ' be >= than configured pipeline interval for'
-               ' collection of underlying meters.'),
-]
-
-NOTIFIER_OPTS = [
-    cfg.IntOpt('workers',
-               default=1,
-               min=1,
-               help='Number of workers for notifier service. '
-               'default value is 1.')
-]
-
-LISTENER_OPTS = [
-    cfg.IntOpt('workers',
-               default=1,
-               min=1,
-               help='Number of workers for listener service. '
-                    'default value is 1.')
 ]
 
 
@@ -90,8 +55,6 @@ def prepare_service(argv=None, config_files=None):
     log.set_defaults(default_log_levels=log_levels)
     defaults.set_cors_middleware_defaults()
     db_options.set_defaults(conf)
-    if profiler_opts:
-        profiler_opts.set_defaults(conf)
     policy_opts.set_defaults(conf, policy_file=os.path.abspath(
         os.path.join(os.path.dirname(__file__), "api", "policy.yaml")))
     from proxy import opts
@@ -114,6 +77,4 @@ def prepare_service(argv=None, config_files=None):
         gmr_opts.set_defaults(conf)
         gmr.TextGuruMeditation.setup_autorun(version, conf=conf)
 
-    profiler.setup(conf)
-    messaging.setup()
     return conf

@@ -1,4 +1,5 @@
 #
+# Copyright 2025 Red Hat, Inc
 # Copyright 2012 New Dream Network, LLC (DreamHost)
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -41,15 +42,6 @@ class ConfigHook(hooks.PecanHook):
     def before(self, state):
         state.request.cfg = self.conf
         state.request.enforcer = self.enforcer
-
-
-class DBHook(hooks.PecanHook):
-
-    def __init__(self, alarm_conn):
-        self.storage = alarm_conn
-
-    def before(self, state):
-        state.request.storage = self.storage
 
 
 class TranslationHook(hooks.PecanHook):

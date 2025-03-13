@@ -1,3 +1,5 @@
+#
+# Copyright 2025 Red Hat, Inc
 # Copyright 2014-2015 eNovance
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,7 +16,6 @@
 import itertools
 
 from keystoneauth1 import loading
-from oslo_config import cfg
 
 import proxy.api
 import proxy.keystone_client

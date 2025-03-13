@@ -1,10 +1,5 @@
 #
-# Copyright 2012 New Dream Network, LLC (DreamHost)
-# Copyright 2013 IBM Corp.
-# Copyright 2013 eNovance <licensing@enovance.com>
-# Copyright Ericsson AB 2013. All rights reserved
-# Copyright 2014 Hewlett-Packard Company
-# Copyright 2015 Huawei Technologies Co., Ltd.
+# Copyright 2025 Red Hat, Inc
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -19,35 +14,9 @@
 # under the License.
 
 import re
-import requests
 
-import pecan
-import wsme
-from wsme import types as wtypes
-
-from proxy.i18n import _
-
-from observabilityclient.utils.metric_utils import format_labels
 from observabilityclient import prometheus_client
-
-
-operation_kind = ('lt', 'le', 'eq', 'ne', 'ge', 'gt')
-operation_kind_enum = wtypes.Enum(str, *operation_kind)
-
-
-class ClientSideError(wsme.exc.ClientSideError):
-    def __init__(self, error, status_code=400):
-        pecan.response.translatable_error = error
-        super(ClientSideError, self).__init__(error, status_code)
-
-
-class ProjectNotAuthorized(ClientSideError):
-    def __init__(self, id, aspect='project'):
-        params = dict(aspect=aspect, id=id)
-        super(ProjectNotAuthorized, self).__init__(
-            _("Not Authorized to access %(aspect)s %(id)s") % params,
-            status_code=401)
-
+from observabilityclient.utils.metric_utils import format_labels
 
 class ObservabilityRbacError(Exception):
     pass
@@ -55,9 +24,13 @@ class ObservabilityRbacError(Exception):
 
 class Base(object):
     def __init__(self):
-        # TODO this needs to come from config
+        # TODO(jwysogla) this needs to come from config
         self.prometheus_client = prometheus_client.PrometheusAPIClient("localhost:9090")
         super(object, self).__init__()
+
+    # NOTE(jwysogla) All the functions below this comment are almost a direct copy
+    # from the observability client. The intention is to move the code from there
+    # here, as it makes a lot more sense on the server side than in the client.
 
     def _find_label_value_end(self, query, start, quote_char):
         end = start
@@ -113,7 +86,6 @@ class Base(object):
         labels = {"project": project_id}
 
         # We need to get all metric names, no matter the rbac
-        # TODO
         metric_names = self.prometheus_client.label_values("__name__")
 
         # We need to detect the locations of metric names
