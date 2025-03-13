@@ -18,23 +18,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import ast
-import datetime
-import functools
 import re
 import requests
 
-from keystoneauth1.exceptions.auth_plugins import MissingAuthPlugin
-from oslo_utils import strutils
-from oslo_utils import timeutils
 import pecan
 import wsme
 from wsme import types as wtypes
 
 from proxy.i18n import _
-from proxy.utils import get_func_valid_keys
 
 from observabilityclient.utils.metric_utils import format_labels
+from observabilityclient import prometheus_client
 
 
 operation_kind = ('lt', 'le', 'eq', 'ne', 'ge', 'gt')
@@ -60,6 +54,11 @@ class ObservabilityRbacError(Exception):
 
 
 class Base(object):
+    def __init__(self):
+        # TODO this needs to come from config
+        self.prometheus_client = prometheus_client.PrometheusAPIClient("localhost:9090")
+        super(object, self).__init__()
+
     def _find_label_value_end(self, query, start, quote_char):
         end = start
         while (end == start or
@@ -115,7 +114,7 @@ class Base(object):
 
         # We need to get all metric names, no matter the rbac
         # TODO
-        metric_names = requests.get(url = "http://localhost:9090/api/v1/label/__name__/values").json()['data']
+        metric_names = self.prometheus_client.label_values("__name__")
 
         # We need to detect the locations of metric names
         # inside the query
@@ -160,4 +159,3 @@ class Base(object):
         """
         labels = {"project": project_id}
         return f"{query}{{{format_labels(labels)}}}"
-

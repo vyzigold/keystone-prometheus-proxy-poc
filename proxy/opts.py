@@ -17,29 +17,18 @@ from keystoneauth1 import loading
 from oslo_config import cfg
 
 import proxy.api
-import proxy.coordination
-import proxy.event
 import proxy.keystone_client
 import proxy.service
-
-OPTS = [
-    cfg.BoolOpt('enable_evaluation_results_metrics',
-                default=False,
-                help=("Whether metric collection should be enabled.")),
-]
 
 
 def list_opts():
     return [
         ('DEFAULT',
          itertools.chain(
-             proxy.service.OPTS,
-             OPTS)),
+             proxy.service.OPTS)),
         ('api',
          itertools.chain(
-             proxy.api.OPTS,
-             )),
-        ('coordination', proxy.coordination.OPTS),
+             proxy.api.OPTS)),
         ('service_credentials', proxy.keystone_client.OPTS),
     ]
 

@@ -19,20 +19,15 @@
 # under the License.
 
 
-import collections
 from oslo_log import log
 import pecan
-from pecan import rest
-import wsmeext.pecan as wsme_pecan
 import requests
 import json
 
 from proxy.api.controllers.api.v1 import base
-from proxy.api import rbac
-from proxy.i18n import _
-from proxy import profiler
 
 LOG = log.getLogger(__name__)
+
 
 class V1Controller(base.Base):
     """Version 1 API controller root."""
@@ -40,7 +35,9 @@ class V1Controller(base.Base):
     @pecan.expose(content_type='application/json')
     def query(self, query):
         """Return all metrics"""
-        enriched = self._enrich_query(query, "12345")
-        result = requests.get(url = "http://localhost:9090/api/v1/query", params={'query': query}).text
-        return result
-
+        project_id = pecan.request.headers.get('X-Project-Id')
+        tenant_enforced_query = self._enrich_query(query, project_id)
+        LOG.debug("Query sent to prometheus: %s", tenant_enforced_query)
+        #result = requests.get(url = "http://localhost:9090/api/v1/query", params={'query': tenant_enforced_query}).text
+        result = self.prometheus_client._get("query", dict(query=query))
+        return json.dumps(result)
